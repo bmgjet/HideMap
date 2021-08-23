@@ -1,7 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
 using CompanionServer.Handlers;
-using System.Linq;
 using System.Collections;
 
 namespace Oxide.Plugins
@@ -26,6 +25,11 @@ namespace Oxide.Plugins
             {
                 RunMapBlank();
             }
+            foreach (VendingMachine machine in UnityEngine.Object.FindObjectsOfType<VendingMachine>())
+            {
+                machine.SetFlag(BaseEntity.Flags.Reserved4, false, false);
+                machine.UpdateMapMarker();
+            }
         }
 
         private void OnPlayerConnected(BasePlayer player)
@@ -49,25 +53,9 @@ namespace Oxide.Plugins
         {
             do
             {
-                List<MapMarker> m = BaseNetworkable.serverEntities.OfType<MapMarker>().ToList();
-                if (m.Count > 1)
-                {
-                    foreach (var mm in m)
-                    {
-                        if (mm != null)
-                        {
-                            if (!mm.IsDestroyed)
-                            {
-                                mm.Kill();
-                                mm.SendNetworkUpdateImmediate();
-                            }
-                        }
-                    }
-                }
                 DrawMap();
                 yield return CoroutineEx.waitForSeconds(2f);
             } while (true);
-            Puts("BlankMap Thread Stopped!");
         }
 
         void MarkerDisplayingDelete(BasePlayer player, string command, string[] args)
@@ -105,13 +93,13 @@ namespace Oxide.Plugins
                 MarkerDisplayingDelete(null, null, null);
             }
             catch { }
-            MapMarkerGenericRadius MapMarkerCustom; 
-                MapMarkerCustom = GameManager.server.CreateEntity("assets/prefabs/tools/map/genericradiusmarker.prefab", new Vector3(0,0,0)) as MapMarkerGenericRadius;
-                MapMarkerCustom.alpha = 1.0f;
-                MapMarkerCustom.color1 = Color.black;
-                MapMarkerCustom.color2 = Color.black;
-                MapMarkerCustom.radius = 100;
-                markers.Add(MapMarkerCustom);
+            MapMarkerGenericRadius MapMarkerCustom;
+            MapMarkerCustom = GameManager.server.CreateEntity("assets/prefabs/tools/map/genericradiusmarker.prefab", new Vector3(0,0,0)) as MapMarkerGenericRadius;
+            MapMarkerCustom.alpha = 1.0f;
+            MapMarkerCustom.color1 = Color.black;
+            MapMarkerCustom.color2 = Color.black;
+            MapMarkerCustom.radius = 100;
+            markers.Add(MapMarkerCustom);
             foreach (var m in markers)
             {
                 try
@@ -121,7 +109,7 @@ namespace Oxide.Plugins
                     m.SendUpdate();
                 }
                 catch { }
-            }               
+            }
         }
     }
 }
